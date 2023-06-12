@@ -1,14 +1,29 @@
+using MassTransit;
+using Microsoft.OpenApi.Models;
+using RabbitMQ.Shared;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddMassTransit(x =>
+{
+    x.AddBus(b => Bus.Factory.CreateUsingRabbitMq(r =>
+    {
+        r.Host(new Uri(RabbitMqConsts.RabbitMqRootUri), h =>
+        {
+            h.Username(RabbitMqConsts.UserName);
+            h.Password(RabbitMqConsts.Password);
+        });
+    }));
+});
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "RabbitMQ.Producer", Version = "v1" });
+});
 var app = builder.Build();
-
+    
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
